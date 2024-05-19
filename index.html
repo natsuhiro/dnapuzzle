@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body style="font-size:30px">
+    <h1>DNA Word Puzzle</h1>
+    <button onclick="checkGray()" style="font-size:30px">Check</button>
+    <span id="message" style="font-size:30px"></span>
+    <div id="area"></div>
+    <script>
+      function triangle(bcolor="white"){
+	  this.style.position="absolute";
+	  this.style.width=twidth+"px";
+	  this.style.aspectRatio="1/cos(30deg)";
+	  if(this.orient==0){
+	      this.style.clipPath="polygon(50% 0,100% 100%,0 100%)";
+	  }
+	  else{
+	      this.style.clipPath="polygon(50% 100%,100% 0,0 0)";	      	      
+	  }
+	  this.style.background="black";
+
+	  let s=this.children[0];
+	  s.style.position="absolute";
+	  s.style.width=(twidth-4)+"px";
+	  if(this.orient==0){
+	      s.style.top="2px";
+	  }
+	  else{
+	      s.style.top="1px";	      
+	  }
+	  s.style.left="2px";
+	  s.style.margin="0";
+	  s.style.aspectRatio="1/cos(30deg)";
+	  if(this.orient==0){
+	      s.style.clipPath="polygon(50% 0,100% 100%,0 100%)";
+	  }
+	  else{
+	      s.style.clipPath="polygon(50% 100%,100% 0,0 0)";	      
+	  }
+	  s.style.background=bcolor;
+
+	  let p=s.children[0];
+	  p.style.position="absolute";
+	  p.style.margin="0";
+	  p.style.top="50%";
+	  p.style.left="50%";
+	  p.style.fontSize=fsize+"px";
+	  if(this.orient==0){
+	      p.style.transform="translateX(-50%)";
+	  }
+	  else{
+	      p.style.transform="translate(-50%,-100%)";	      
+	  }
+      }
+
+      function procEnd(event){
+	  event.preventDefault();
+	  if(this.moving==1){
+	      if(this.orient==0){this.orient=1;}
+	      else{this.orient=0;}
+	  }
+	  this.triangle();
+	  engage(this);
+	  this.moving=0;
+      }
+
+      function procStart(event){
+	  event.preventDefault();	  
+	  count++;
+	  this.moving=1;
+	  this.style.zIndex=count;
+	  unengage(this);
+      }
+
+      function procMove(event){
+	  event.preventDefault();
+	  if(this.moving>=1){
+	      let x,y;
+	      if(!event.pageX){x=event.touches[0].pageX;}
+	      else{x=event.pageX;}
+	      if(!event.pageY){y=event.touches[0].pageY;}
+	      else{y=event.pageY;}
+	      
+	      this.style.left=(x-twidth/2) + 'px';		  
+	      this.style.top=(y-twidth/2) + 'px';		  
+	      this.draggable=false;
+	      this.moving=2;
+	      this.setPointerCapture(event.pointerId);
+	  }
+      }
+      
+      function createTriangle(dna){
+	  let t=document.createElement("div");
+	  let s=document.createElement("span");
+	  let p=document.createElement("p");
+
+	  s.appendChild(p);
+	  t.appendChild(s);
+	  p.innerHTML=dna;
+	  
+	  t.dna=dna;
+	  if(Math.random()<0.5){t.orient=0;}
+	  else{t.orient=1;}
+
+	  t.addEventListener("touchend",procEnd);
+	  t.addEventListener("mouseup",procEnd);
+	  t.addEventListener("touchstart",procStart);
+	  t.addEventListener("mousedown",procStart);	  
+	  t.addEventListener("touchmove",procMove);
+	  t.addEventListener("mousemove",procMove);	  	  	  
+
+	  t.triangle=triangle;
+	  t.style.zIndex=1;
+	  t.triangle();
+
+	  let x=Math.floor(Math.random()*(window.innerWidth-100));
+	  let y=Math.floor(Math.random()*(window.innerHeight-100));
+	  t.style.left=x+"px";
+	  t.style.top=y+"px";	  
+	  document.getElementById("area").appendChild(t);
+	  return t;
+      }
+
+      function createFrame(num){
+	  let t=document.createElement("div");
+	  let s=document.createElement("span");
+	  let p=document.createElement("p");
+	  
+	  s.appendChild(p);
+	  t.appendChild(s);
+
+	  t.orient=0;
+	  t.triangle=triangle;
+	  t.style.zIndex=0;
+
+	  let x;
+	  let y;
+	  let n1=(num>>2)&3,n2=(num&3);
+
+	  x=Math.floor(window.innerWidth/2)-twidth/2;
+	  y=Math.floor(window.innerHeight/2-theight*2);
+	  t.orient=0;
+
+	  if(n2==1){
+	      x-=twidth/2;
+	      y+=theight;	      
+	  }
+	  else if(n2==2){
+	      x+=twidth/2;
+	      y+=theight;
+	  }
+	  else if(n2==3){
+	      t.orient^=1;
+	      y+=theight;
+	  }
+
+	  if(n1==1){
+	      x-=twidth;
+	      y+=2*theight;	      
+	  }
+	  else if(n1==2){
+	      x+=twidth;
+	      y+=2*theight;	      
+	  }
+	  else if(n1==3){
+	      t.orient^=1;
+	      if(n2==0){
+		  y+=theight*3;
+	      }
+	      else if(n2==1){
+		  x+=twidth;
+		  y+=theight;
+	      }
+	      else if(n2==2){
+		  x-=twidth;
+		  y+=theight;
+	      }
+	      else if(n2==3){
+		  y+=theight;		  
+	      }
+	  }
+	  
+	  t.style.left=Math.floor(x)+"px";
+	  t.style.top=Math.floor(y)+"px";
+
+	  t.triangle("#DDF");	  
+	  
+	  document.getElementById("area").appendChild(t);
+	  t.partner=null;
+
+	  return t;
+      }
+
+      function engage(target){
+	  for(let i=0;i<frame.length;++i){
+	      let f=frame[i];
+	      let d=Math.sqrt((target.offsetLeft-f.offsetLeft)**2+(target.offsetTop-f.offsetTop)**2);
+	      if(d<twidth/3 && f.orient==target.orient && f.partner==null){
+		  target.style.left=f.offsetLeft+"px";
+		  target.style.top=f.offsetTop+"px";
+		  f.partner=target;
+		  break;
+	      }
+	  }
+      }
+      
+      function unengage(target){
+	  for(let i=0;i<frame.length;++i){
+	      if(target==frame[i].partner){
+		  frame[i].partner=null;
+		  break;
+	      }
+	  }
+      }
+      
+      function dist(a,b){
+	  let ans=0;
+	  for(i=0;i<a.length;++i){
+	      if(a[i]!=b[i]){ans++;}
+	  }
+	  return ans;
+      }
+      
+      function checkGray(){
+	  let err=0,pnum=0;
+	  for(let i=0;i<frame.length;++i){
+	      let f1=frame[i];
+	      if(f1.partner!=null){
+		  pnum++;
+		  f1.partner.triangle("white");
+		  for(let j=0;j<neighbor[i].length;++j){
+		      let f2=frame[neighbor[i][j]];
+		      if(f2.partner!=null){
+			  if(dist(f1.partner.dna,f2.partner.dna)!=1){
+			      f1.partner.triangle("#ccc");
+			      err++;
+			  }
+		      }
+		  }
+	      }
+	  }
+	  if(err==0 && pnum==frame.length){
+	      document.getElementById("message").innerHTML="Clear!";
+	  }
+	  else{
+	      document.getElementById("message").innerHTML="";	      
+	  }
+      }
+
+      let count=1;
+      
+      let twidth,theight,fsize;
+      if(window.innerHeight<window.innerWidth){
+	  twidth=Math.floor(window.innerHeight*0.2);
+      }
+      else{
+	  twidth=Math.floor(window.innerWidth*0.2);	  
+      }
+      theight=Math.floor(twidth*Math.sqrt(3)/2);
+      fsize=Math.floor(twidth*0.25);
+      
+      document.onselectstart=function(){return false;};
+      
+      let dna=["A","G","C","T"];
+      let neighbor=[[3,5,10],[3,4,14],[3,8,13],[0,1,2],
+		    [1,7,14],[0,7,10],[7,9,12],[4,5,6],
+		    [2,11,13],[6,11,12],[0,5,11],[8,9,10],
+		    [6,9,15],[2,8,15],[1,4,15],[12,13,14]];
+      let oligo=[];
+      for(let i=0;i<dna.length;++i){
+	  for(let j=0;j<dna.length;++j){
+	      oligo.push(createTriangle(dna[i]+dna[j]));
+	  }
+      }
+      
+      let frame=[];
+      for(let i=0;i<16;++i){
+	  frame.push(createFrame(i));
+      }
+    </script>
+  </body>
+</html>
